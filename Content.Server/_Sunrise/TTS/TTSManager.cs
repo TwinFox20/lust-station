@@ -124,8 +124,6 @@ public sealed class TTSManager
             query["effect"] = body.Effect;
 
         uriBuilder.Query = query.ToString();
-        // TODO: delete me
-        Console.WriteLine("uriBuilder: {0}", uriBuilder);
         return uriBuilder.ToString();
     }
 
