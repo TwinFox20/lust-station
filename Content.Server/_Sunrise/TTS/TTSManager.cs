@@ -65,7 +65,7 @@ public sealed class TTSManager
             Provider = voicePrototype.Provider,
             // Pitch = pitch,
             // Rate = rate,
-            Effect = effect
+            Effect = effect,
         };
 
         var request = CreateRequestLink(_apiUrl, body);
@@ -124,6 +124,8 @@ public sealed class TTSManager
             query["effect"] = body.Effect;
 
         uriBuilder.Query = query.ToString();
+        // TODO: delete me
+        Console.WriteLine("uriBuilder: {0}", uriBuilder);
         return uriBuilder.ToString();
     }
 

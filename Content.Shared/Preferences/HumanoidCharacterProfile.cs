@@ -250,8 +250,9 @@ namespace Content.Shared.Preferences
 
             var species = random.Pick(prototypeManager
                 .EnumeratePrototypes<SpeciesPrototype>()
-                .Where(x => (ignoredSpecies == null ? x.RoundStart : x.RoundStart && !ignoredSpecies.Contains(x.ID))
-                            && !x.SponsorOnly)
+                .Where(prototype => ignoredSpecies == null
+                    ? prototype.RoundStart
+                    : prototype.RoundStart && !ignoredSpecies.Contains(prototype.ID))
                 .ToArray()
             ).ID;
 
@@ -566,14 +567,6 @@ namespace Content.Shared.Preferences
                 Species = SharedHumanoidAppearanceSystem.DefaultSpecies;
                 speciesPrototype = prototypeManager.Index(Species);
             }
-
-            // Sunrise-Sponsors-Start: Reset to human if player not sponsor
-            if (speciesPrototype.SponsorOnly && !sponsorPrototypes.Contains(Species.Id))
-            {
-                Species = SharedHumanoidAppearanceSystem.DefaultSpecies;
-                speciesPrototype = prototypeManager.Index<SpeciesPrototype>(Species);
-            }
-            // Sunrise-Sponsors-End
 
             var sex = Sex switch
             {

@@ -1,4 +1,3 @@
-using Content.Client._Sunrise.SponsorTiers;
 using Content.Shared._Sunrise.SunriseCCVars;
 using Content.Sunrise.Interfaces.Client;
 using Content.Sunrise.Interfaces.Shared;
@@ -7,21 +6,16 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Configuration;
-using Robust.Shared.Player;
 
 namespace Content.Client._Sunrise.UserProfile;
 
 [GenerateTypedNameReferences]
 public sealed partial class UserProfile : Control
 {
-    [Dependency] private readonly ISharedPlayerManager _playerManager = default!;
-    [Dependency] private readonly IUriOpener _uri = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
 
 
-    private readonly SponsorTiersUIController _sponsorTiersUIController;
     private readonly IClientServiceAuthManager? _serviceAuthManager;
-    private readonly ISharedSponsorsManager? _sponsorsManager;
 
     private string _donateUrl = string.Empty;
 
@@ -30,13 +24,9 @@ public sealed partial class UserProfile : Control
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
 
-        IoCManager.Instance!.TryResolveType(out _sponsorsManager);
         IoCManager.Instance!.TryResolveType(out _serviceAuthManager);
 
-        _sponsorTiersUIController = UserInterfaceManager.GetUIController<SponsorTiersUIController>();
-
         _cfg.OnValueChanged(SunriseCCVars.InfoLinksDonate, OnInfoLinksDonateChanged, true);
-
 
         if (_serviceAuthManager == null)
         {
@@ -54,44 +44,13 @@ public sealed partial class UserProfile : Control
             ResetGitHubButton.OnPressed += ResetGitHubPressed;
             _serviceAuthManager.LoadedServiceLinkedServices += RefreshServiceLinkedServices;
         }
-
-        if (_sponsorsManager == null)
-        {
-            BuySponsorButton.Disabled = true;
-            InfoSponsorButton.Disabled = true;
-        }
-        else
-        {
-            BuySponsorButton.OnPressed += BuySponsorPressed;
-            _sponsorsManager.LoadedSponsorInfo += RefreshSponsorInfo;
-            InfoSponsorButton.OnPressed += InfoSponsorPressed;
-        }
     }
 
     private void OnInfoLinksDonateChanged(string url)
     {
-        BuySponsorButton.Disabled = url == "";
         _donateUrl = url;
     }
 
-    private void RefreshSponsorInfo()
-    {
-        if (_sponsorsManager == null)
-            return;
-
-        if (_playerManager.LocalSession != null)
-        {
-            if (_sponsorsManager.ClientIsSponsor())
-            {
-                _sponsorsManager.TryGetOocTitle(_playerManager.LocalSession.UserId, out var sponsorTitle);
-                SponsorTierName.Text = sponsorTitle;
-            }
-            else
-            {
-                SponsorTierName.Text = Loc.GetString("user-profile-no-sponsor");
-            }
-        }
-    }
 
     private void RefreshServiceLinkedServices(List<LinkedServiceData> linkedServices)
     {
@@ -159,11 +118,6 @@ public sealed partial class UserProfile : Control
         _serviceAuthManager.ResetServiceLink(ServiceType.Github);
     }
 
-    private void BuySponsorPressed(BaseButton.ButtonEventArgs obj)
-    {
-        _uri.OpenUri(_donateUrl);
-    }
-
     private void LinkTelegramPressed(BaseButton.ButtonEventArgs obj)
     {
         if (_serviceAuthManager == null)
@@ -186,10 +140,5 @@ public sealed partial class UserProfile : Control
             return;
 
         _serviceAuthManager.ToggleWindow(ServiceType.Github);
-    }
-
-    private void InfoSponsorPressed(BaseButton.ButtonEventArgs obj)
-    {
-        _sponsorTiersUIController.ToggleWindow();
     }
 }

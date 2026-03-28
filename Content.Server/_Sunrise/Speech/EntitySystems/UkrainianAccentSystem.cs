@@ -34,7 +34,7 @@ public sealed class UkrainianAccentSystem : EntitySystem
                 'Ё' => 'Ї',
                 'е' => 'є',
                 'Е' => 'Є',
-                _ => accentedMessage[i]
+                _ => accentedMessage[i],
             };
         }
 

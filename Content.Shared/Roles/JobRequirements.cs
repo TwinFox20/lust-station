@@ -21,12 +21,11 @@ public static class JobRequirements
         [NotNullWhen(false)] out FormattedMessage? reason,
         IEntityManager entManager,
         IPrototypeManager protoManager,
-        HumanoidCharacterProfile? profile,
-        string[] sponsorPrototypes) // Sunrise-Sponsors
+        HumanoidCharacterProfile? profile)
     {
         var sys = entManager.System<SharedRoleSystem>();
         var requirements = sys.GetRoleRequirements(job);
-        return TryRequirementsMet(requirements, playTimes, out reason, entManager, protoManager, profile, job.ID, sponsorPrototypes);
+        return TryRequirementsMet(requirements, playTimes, out reason, entManager, protoManager, profile);
     }
 
     /// <summary>
@@ -42,9 +41,7 @@ public static class JobRequirements
         [NotNullWhen(false)] out FormattedMessage? reason,
         IEntityManager entManager,
         IPrototypeManager protoManager,
-        HumanoidCharacterProfile? profile,
-        string protoId,
-        string[] sponsorPrototypes)
+        HumanoidCharacterProfile? profile)
     {
         reason = null;
         if (requirements == null)
@@ -52,7 +49,7 @@ public static class JobRequirements
 
         foreach (var requirement in requirements)
         {
-            if (!requirement.Check(entManager, protoManager, profile, playTimes, protoId, sponsorPrototypes, out reason)) // Sunrise-Sponsors
+            if (!requirement.Check(entManager, protoManager, profile, playTimes, out reason))
                 return false;
         }
 
@@ -75,7 +72,5 @@ public abstract partial class JobRequirement
         IPrototypeManager protoManager,
         HumanoidCharacterProfile? profile,
         IReadOnlyDictionary<string, TimeSpan> playTimes,
-        string? protoId, // Sunrise-Sponsors
-        string[] sponsorPrototypes, // Sunrise-Sponsors
         [NotNullWhen(false)] out FormattedMessage? reason);
 }

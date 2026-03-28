@@ -7,13 +7,9 @@
         <BoxContainer Orientation="Horizontal" SeparationOverride="2" HorizontalExpand="True">
             <customControls:VSeparator/>
             <BoxContainer Orientation="Vertical" SizeFlagsStretchRatio="2" HorizontalExpand="True" HorizontalAlignment="Center">
-                <Label Text="{Loc 'user-profile-sponsor-title'}" StyleClasses="LabelHeadingBigger" HorizontalAlignment="Center"/>
                 <BoxContainer Orientation="Horizontal" HorizontalExpand="True" HorizontalAlignment="Center">
                     <Label Text="{Loc 'user-profile-level'}" StyleClasses="LabelKeyText"/>
-                    <Label Name="SponsorTierName" Margin="5 0 0 0"/>
                 </BoxContainer>
-                <Button Name="InfoSponsorButton" Margin="0 2 0 0" Text="{Loc 'user-profile-sponsor-info-button'}" HorizontalAlignment="Center" />
-                <Button Name="BuySponsorButton" Margin="0 2 0 0" Text="{Loc 'user-profile-sponsor-buy-button'}" HorizontalAlignment="Center" />
             </BoxContainer>
             <customControls:VSeparator/>
             <BoxContainer Orientation="Vertical" SizeFlagsStretchRatio="3" HorizontalExpand="True" Margin="5 5 5 5">

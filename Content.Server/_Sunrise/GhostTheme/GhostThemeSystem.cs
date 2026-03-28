@@ -1,11 +1,9 @@
-// © SUNRISE, An EULA/CLA with a hosting restriction, full text: https://github.com/space-sunrise/space-station-14/blob/master/CLA.txt
+using System.Linq;
 using Content.Shared._Sunrise.GhostTheme;
 using Content.Shared.Ghost;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Server.GameObjects;
-using Content.Sunrise.Interfaces.Shared;
-using Content.Server._Sunrise.SponsorValidation;
 using Content.Server._Sunrise.PlayerCache;
 using Content.Shared._Sunrise.PlayerCache;
 
@@ -15,7 +13,6 @@ public sealed class GhostThemeSystem : EntitySystem
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
-    [Dependency] private readonly SponsorValidationSystem _validationSystem = default!;
     [Dependency] private readonly PlayerCacheManager _playerCache = default!;
 
     public override void Initialize()
@@ -49,9 +46,6 @@ public sealed class GhostThemeSystem : EntitySystem
         if (!TryComp(msg.Actor, out ActorComponent? actorComp))
             return;
 
-        if (!_validationSystem.ValidateGhostThemeSelection(msg.SelectedGhostTheme, actorComp.PlayerSession.UserId))
-            return;
-
         if (!_prototypeManager.TryIndex<GhostThemePrototype>(msg.SelectedGhostTheme, out var ghostThemePrototype))
             return;
 
@@ -75,7 +69,10 @@ public sealed class GhostThemeSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        var allGhostThemes = _validationSystem.GetGhostThemesForPlayer(session.UserId);
+        var allGhostThemes = _prototypeManager
+            .EnumeratePrototypes<GhostThemePrototype>()
+            .Select(ghostTheme => new GhostThemeInfo(ghostTheme.ID, true))
+            .ToList();
         var state = new GhostThemeBoundUserInterfaceState(allGhostThemes);
 
         _uiSystem.SetUiState(uid, GhostThemeUiKey.Key, state);
@@ -86,10 +83,7 @@ public sealed class GhostThemeSystem : EntitySystem
         if (!_playerCache.TryGetCachedGhostTheme(args.Player.UserId, out var ghostTheme))
             return;
 
-        if (!_validationSystem.ValidateGhostThemeSelection(ghostTheme, args.Player.UserId))
-            return;
-
-        if (!_prototypeManager.TryIndex<GhostThemePrototype>(ghostTheme, out var ghostThemePrototype))
+        if (!_prototypeManager.TryIndex<GhostThemePrototype>(ghostTheme, out _))
             return;
 
         EnsureComp<GhostThemeComponent>(uid).GhostTheme = ghostTheme;

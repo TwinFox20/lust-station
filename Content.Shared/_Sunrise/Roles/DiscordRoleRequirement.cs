@@ -17,19 +17,12 @@ public sealed partial class DiscordRoleRequirement : JobRequirement
         IPrototypeManager protoManager,
         HumanoidCharacterProfile? profile,
         IReadOnlyDictionary<string, TimeSpan> playTimes,
-        string? protoId, // Sunrise-Edit
-        string[] sponsorPrototypes, // Sunrise-Edit
         [NotNullWhen(false)] out FormattedMessage? reason)
     {
         reason = new FormattedMessage();
 
         if (profile is null)
             return true;
-
-        // Sunrise-Sponsors-Start
-        if (sponsorPrototypes.Contains(protoId))
-            return true;
-        // Sunrise-Sponsors-End
 
         reason = FormattedMessage.FromMarkupPermissive(Loc.GetString("role-timer-discord"));
         return false;

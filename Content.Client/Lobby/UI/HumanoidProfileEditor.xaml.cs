@@ -157,22 +157,22 @@ namespace Content.Client.Lobby.UI
                 ExportProfile();
             };
 
-            ExportImageButton.OnPressed += args =>
+            ExportImageButton.OnPressed += _ =>
             {
                 ExportImage();
             };
 
-            OpenImagesButton.OnPressed += args =>
+            OpenImagesButton.OnPressed += _ =>
             {
                 _resManager.UserData.OpenOsWindow(ContentSpriteSystem.Exports);
             };
 
-            ResetButton.OnPressed += args =>
+            ResetButton.OnPressed += _ =>
             {
                 SetProfile((HumanoidCharacterProfile?) _preferencesManager.Preferences?.SelectedCharacter, _preferencesManager.Preferences?.SelectedCharacterIndex);
             };
 
-            SaveButton.OnPressed += args =>
+            SaveButton.OnPressed += _ =>
             {
                 Save?.Invoke();
             };
@@ -183,8 +183,8 @@ namespace Content.Client.Lobby.UI
 
             NameEdit.OnTextChanged += args => { SetName(args.Text); };
             NameEdit.IsValid = args => args.Length <= _maxNameLength;
-            NameRandomize.OnPressed += args => RandomizeName();
-            RandomizeEverythingButton.OnPressed += args => { RandomizeEverything(); };
+            NameRandomize.OnPressed += _ => RandomizeName();
+            RandomizeEverythingButton.OnPressed += _ => { RandomizeEverything(); };
             WarningLabel.SetMarkup($"[color=red]{Loc.GetString("humanoid-profile-editor-naming-rules-warning")}[/color]");
 
             #endregion Name
@@ -297,12 +297,12 @@ namespace Content.Client.Lobby.UI
             #region Size
             UpdateSizeControls();
 
-            WidthSlider.OnValueChanged += args =>
+            WidthSlider.OnValueChanged += _ =>
             {
                 UpdateSizeText();
             };
 
-            HeightSlider.OnValueChanged += args =>
+            HeightSlider.OnValueChanged += _ =>
             {
                 UpdateSizeText();
             };
@@ -465,7 +465,7 @@ namespace Content.Client.Lobby.UI
                 ReloadPreview();
             };
 
-            HairStylePicker.OnSlotAdd += delegate()
+            HairStylePicker.OnSlotAdd += delegate
             {
                 if (Profile is null)
                     return;
@@ -485,7 +485,7 @@ namespace Content.Client.Lobby.UI
                 ReloadPreview();
             };
 
-            FacialHairPicker.OnSlotAdd += delegate ()
+            FacialHairPicker.OnSlotAdd += delegate
             {
                 if (Profile is null)
                     return;
@@ -598,7 +598,7 @@ namespace Content.Client.Lobby.UI
 
             #endregion Left
 
-            ShowClothes.OnToggled += args =>
+            ShowClothes.OnToggled += _ =>
             {
                 ReloadPreview();
             };
@@ -619,11 +619,7 @@ namespace Content.Client.Lobby.UI
                 if (_flavorText != null)
                     return;
 
-                // Sunrise-Start
-                var sponsorOnly = _cfgManager.GetCVar(SunriseCCVars.FlavorTextSponsorOnly);
-                var baseMaxDescLength = _cfgManager.GetCVar(SunriseCCVars.FlavorTextBaseLength);
-                _flavorText = new FlavorText.FlavorText(_sponsorsMgr, sponsorOnly, baseMaxDescLength);
-                // Sunrise-End
+                _flavorText = new FlavorText.FlavorText();
                 TabContainer.AddChild(_flavorText);
                 TabContainer.SetTabTitle(TabContainer.ChildCount - 1, Loc.GetString("humanoid-profile-editor-flavortext-tab"));
                 _flavorTextEdit = _flavorText.CFlavorTextInput;
@@ -764,9 +760,9 @@ namespace Content.Client.Lobby.UI
             SpeciesButton.Clear();
             _species.Clear();
 
-            _species.AddRange(_prototypeManager.EnumeratePrototypes<SpeciesPrototype>().Where(o => o.RoundStart));
+            _species.AddRange(_prototypeManager.EnumeratePrototypes<SpeciesPrototype>().Where(prototype => prototype.RoundStart));
             _species.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
-            var speciesIds = _species.Select(o => o.ID).ToList();
+            var speciesIds = _species.Select(prototype => prototype.ID).ToList();
 
             for (var i = 0; i < _species.Count; i++)
             {
@@ -777,17 +773,6 @@ namespace Content.Client.Lobby.UI
                 {
                     SpeciesButton.SelectId(i);
                 }
-
-                // Sunrise-Sponsors-Start
-                if (_sponsorsMgr is null)
-                    continue;
-                if (_species[i].SponsorOnly && _sponsorsMgr != null &&
-                    !_sponsorsMgr.GetClientPrototypes().Contains(_species[i].ID))
-                {
-                    SpeciesButton.SetItemDisabled(SpeciesButton.GetIdx(i), true);
-                    SpeciesButton.SetItemText(SpeciesButton.GetIdx(i), Loc.GetString("sponsor-marking", ("name", name))); // Sunrise-edit
-                }
-                // Sunrise-Sponsors-End
             }
 
             // If our species isn't available then reset it to default.
@@ -1980,17 +1965,6 @@ namespace Content.Client.Lobby.UI
 
         private void RandomizeEverything()
         {
-            // Sunrise-Sponsors-Start
-            var ignoredSpecies = new HashSet<string>();
-            foreach (var speciesPrototype in _prototypeManager.EnumeratePrototypes<SpeciesPrototype>())
-            {
-                if (speciesPrototype.SponsorOnly &&
-                    _sponsorsMgr != null &&
-                    !_sponsorsMgr.GetClientPrototypes().Contains(speciesPrototype.ID))
-                    ignoredSpecies.Add(speciesPrototype.ID);
-            }
-            Profile = HumanoidCharacterProfile.Random(ignoredSpecies);
-            // Sunrise-Sponsors-End
             SetProfile(Profile, CharacterSlot);
             SetDirty();
         }

@@ -1,16 +1,14 @@
-// © SUNRISE, An EULA/CLA with a hosting restriction, full text: https://github.com/space-sunrise/space-station-14/blob/master/CLA.txt
-
 using Content.Server._Sunrise.PlayerCache;
-using Content.Server._Sunrise.SponsorValidation;
 using Content.Shared._Sunrise.Pets;
 using Content.Shared._Sunrise.PlayerCache;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._Sunrise.Pets;
 
 public sealed class PetSelectionSystem : EntitySystem
 {
-    [Dependency] private readonly SponsorValidationSystem _validationSystem = default!;
-    [Dependency] private readonly PlayerCacheManager _playerCache = default!;
+    [Dependency] private readonly IPrototypeManager _prototypeManager = null!;
+    [Dependency] private readonly PlayerCacheManager _playerCache = null!;
 
     public override void Initialize()
     {
@@ -21,8 +19,9 @@ public sealed class PetSelectionSystem : EntitySystem
 
     private void OnPetSelectionSelected(PetSelectionPrototypeSelectedEvent ev, EntitySessionEventArgs args)
     {
-        if (!_validationSystem.ValidatePetSelection(ev.SelectedPetSelection, args.SenderSession.UserId))
+        if (!_prototypeManager.HasIndex<PetSelectionPrototype>(ev.SelectedPetSelection))
             return;
+
         if (_playerCache.TryGetCache(args.SenderSession.UserId, out var cache))
         {
             cache.Pet = ev.SelectedPetSelection;

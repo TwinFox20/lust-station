@@ -29,30 +29,19 @@ public sealed partial class DepartmentTimeRequirement : JobRequirement
         IPrototypeManager protoManager,
         HumanoidCharacterProfile? profile,
         IReadOnlyDictionary<string, TimeSpan> playTimes,
-        string? protoId, // Sunrise-Sponsors
-        string[] sponsorPrototypes, // Sunrise-Sponsors
         [NotNullWhen(false)] out FormattedMessage? reason)
     {
         reason = new FormattedMessage();
-
-        // Sunrise-Sponsors-Start
-        if (sponsorPrototypes.Contains(protoId))
-            return true;
-        // Sunrise-Sponsors-End
 
         var playtime = TimeSpan.Zero;
 
         // Check all jobs' departments
         var department = protoManager.Index(Department);
         var jobs = department.Roles;
-        string proto;
 
         // Check all jobs' playtime
-        foreach (var other in jobs)
+        foreach (var proto in jobs.Select(other => protoManager.Index(other).PlayTimeTracker))
         {
-            // The schema is stored on the Job role but we want to explode if the timer isn't found anyway.
-            proto = protoManager.Index(other).PlayTimeTracker;
-
             playTimes.TryGetValue(proto, out var otherTime);
             playtime += otherTime;
         }
