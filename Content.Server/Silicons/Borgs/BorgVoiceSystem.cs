@@ -2,10 +2,7 @@ using System.Linq;
 using Content.Server._Sunrise.TTS;
 using Content.Shared._Sunrise.TTS;
 using Content.Shared.Popups;
-using Content.Shared.Preferences;
 using Content.Shared.Silicons.Borgs.Components;
-using Content.Shared.UserInterface;
-using Content.Sunrise.Interfaces.Shared;
 using Robust.Server.GameObjects;
 using Robust.Server.Player;
 using Robust.Shared.Player;
@@ -23,8 +20,6 @@ public sealed class BorgVoiceSystem : EntitySystem
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
 
-    private ISharedSponsorsManager? _sponsorsManager;
-
     public override void Initialize()
     {
         base.Initialize();
@@ -34,9 +29,6 @@ public sealed class BorgVoiceSystem : EntitySystem
 
         // Subscribe to TTS voice transformation
         SubscribeLocalEvent<BorgVoiceComponent, TransformSpeakerVoiceEvent>(OnTransformSpeakerVoice);
-
-        // Initialize sponsors manager
-        IoCManager.Instance!.TryResolveType(out _sponsorsManager);
 
         // Subscribe to UI events
         Subs.BuiEvents<BorgVoiceComponent>(BorgVoiceUiKey.Key, subs =>
@@ -134,8 +126,8 @@ public sealed class BorgVoiceSystem : EntitySystem
     {
         var availableVoices = _prototypeManager
             .EnumeratePrototypes<TTSVoicePrototype>()
-            .Where(v => v.RoundStart && CanUseVoice(v.ID, player))
-            .Select(v => v.ID)
+            .Where(prototype => prototype.RoundStart && CanUseVoice(prototype.ID, player))
+            .Select(prototype => prototype.ID)
             .ToList();
 
         return new BorgVoiceChangeState(component.SelectedVoiceId, availableVoices);
@@ -143,15 +135,6 @@ public sealed class BorgVoiceSystem : EntitySystem
 
     private bool CanUseVoice(string voiceId, ICommonSession player)
     {
-        if (!_prototypeManager.TryIndex<TTSVoicePrototype>(voiceId, out var voice))
-            return false;
-
-        if (!voice.SponsorOnly)
-            return true;
-
-        if (_sponsorsManager == null)
-            return true;
-
-        return _sponsorsManager.TryGetPrototypes(player.UserId, out var allowedPrototypes) && allowedPrototypes.Contains(voiceId);
+        return _prototypeManager.HasIndex(voiceId);
     }
 }
