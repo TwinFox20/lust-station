@@ -1176,8 +1176,8 @@ namespace Content.Client.Lobby.UI
 
                             if (loadout == null)
                             {
-                                loadout = new RoleLoadout(jobLoadoutId);  // Sunrise-edit
-                                loadout.SetDefault(Profile, _playerManager.LocalSession, _prototypeManager, sponsorPrototypes);
+                                loadout = new RoleLoadout(jobLoadoutId);
+                                loadout.SetDefault(Profile, _playerManager.LocalSession, _prototypeManager);
                             }
 
                             OpenLoadout(job, loadout, roleLoadoutProto);

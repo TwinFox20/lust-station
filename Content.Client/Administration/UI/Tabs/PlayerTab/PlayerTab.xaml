@@ -6,8 +6,6 @@
         <BoxContainer Orientation="Horizontal">
             <Label Name="PlayerCount" HorizontalExpand="True" Text="{Loc Player Count}" SizeFlagsStretchRatio="0.15"/>
             <!-- Sunrise-Sponsors-Start -->
-            <Label Name="SponsorCount" HorizontalExpand="True" SizeFlagsStretchRatio="0.15"
-                   Text="{Loc Player Count}" />
             <Label Name="AntagCount" HorizontalExpand="True" SizeFlagsStretchRatio="0.15"
                    Text="{Loc Player Count}" />
             <!-- Sunrise-Sponsors-End -->

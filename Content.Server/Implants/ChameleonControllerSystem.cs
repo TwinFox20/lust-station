@@ -100,12 +100,12 @@ public sealed class ChameleonControllerSystem : SharedChameleonControllerSystem
 
         // Sunrise-start
         var effectiveJobProtoId = LoadoutSystem.GetEffectiveRolePrototype(jobProtoId, _proto);
-        if (!_proto.HasIndex<RoleLoadoutPrototype>(effectiveJobProtoId))
+        if (!_proto.HasIndex(effectiveJobProtoId))
         // Sunrise-end
             return;
 
         defaultRoleLoadout = new RoleLoadout(jobProtoId);
-        defaultRoleLoadout.SetDefault(profile, null, _proto, []); // only sets the default if the player has no loadout
+        defaultRoleLoadout.SetDefault(profile, null, _proto); // only sets the default if the player has no loadout
     }
 
     private void ChameleonControllerOutfitItemSelected(Entity<ChameleonClothingComponent> ent, ref InventoryRelayedEvent<ChameleonControllerOutfitSelectedEvent> args)

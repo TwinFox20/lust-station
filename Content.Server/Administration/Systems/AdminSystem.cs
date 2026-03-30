@@ -67,8 +67,6 @@ public sealed class AdminSystem : EntitySystem
     private readonly HashSet<NetUserId> _roundActivePlayers = new();
     public readonly PanicBunkerStatus PanicBunker = new();
 
-    private ISharedSponsorsManager? _sponsorsManager; // Sunrise-Sponsors
-
     public override void Initialize()
     {
         base.Initialize();
@@ -94,8 +92,6 @@ public sealed class AdminSystem : EntitySystem
 
         SubscribeLocalEvent<ActorComponent, EntityRenamedEvent>(OnPlayerRenamed);
         SubscribeLocalEvent<ActorComponent, IdentityChangedEvent>(OnIdentityChanged);
-
-        IoCManager.Instance!.TryResolveType(out _sponsorsManager); // Sunrise-Sponsors
     }
 
     private void OnRoundRestartCleanup(RoundRestartCleanupEvent ev)
@@ -269,16 +265,6 @@ public sealed class AdminSystem : EntitySystem
             overallPlaytime = playTime;
         }
 
-        // Sunrise-Sponsors-Start
-        var isSponsor = false;
-        var sponsorTitle = "";
-        if (_sponsorsManager != null)
-        {
-            isSponsor = _sponsorsManager.IsSponsor(data.UserId);
-            _sponsorsManager.TryGetOocTitle(data.UserId, out sponsorTitle);
-        }
-        // Sunrise-Sponsors-End
-
         return new PlayerInfo(
             name,
             entityName,
@@ -292,9 +278,7 @@ public sealed class AdminSystem : EntitySystem
             data.UserId,
             connected,
             _roundActivePlayers.Contains(data.UserId),
-            overallPlaytime,
-            isSponsor,
-            sponsorTitle);
+            overallPlaytime);
     }
 
     private void OnPanicBunkerChanged(bool enabled)

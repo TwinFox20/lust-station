@@ -58,11 +58,6 @@ public sealed partial class SunriseBwoinkControl : Control
         {
             var sb = new StringBuilder();
 
-            // Alteros-Sponsors-start
-            if (info.IsSponsor)
-                sb.Append("★");
-            // Alteros-Sponsors-end
-
             if (info.Connected)
                 sb.Append(info.ActiveThisRound ? '⚫' : '◐');
             else

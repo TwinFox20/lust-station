@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Text.RegularExpressions;
-using Content.Shared._Sunrise.SunriseCCVars;
 using Content.Shared.CCVar;
 using Content.Shared._Sunrise.TTS;
 using Content.Shared.GameTicking;
@@ -9,7 +8,6 @@ using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Preferences.Loadouts;
 using Content.Shared.Roles;
 using Content.Shared.Traits;
-using Content.Sunrise.Interfaces.Shared;
 using Robust.Shared.Collections;
 using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
@@ -142,7 +140,7 @@ namespace Content.Shared.Preferences
 
         public HumanoidCharacterProfile(
             string name,
-            string flavortext,
+            string flavorText,
             string species,
             string voice, // Sunrise-TTS
             string bodyType,
@@ -161,7 +159,7 @@ namespace Content.Shared.Preferences
             Dictionary<string, RoleLoadout> loadouts)
         {
             Name = name;
-            FlavorText = flavortext;
+            FlavorText = flavorText;
             Species = species;
             Voice = voice; // Sunrise-TTS
             BodyType = bodyType;
@@ -179,7 +177,7 @@ namespace Content.Shared.Preferences
             _traitPreferences = traitPreferences;
             _loadouts = loadouts;
 
-            var hasHighPrority = false;
+            var hasHighPriority = false;
             foreach (var (key, value) in _jobPriorities)
             {
                 if (value == JobPriority.Never)
@@ -187,10 +185,10 @@ namespace Content.Shared.Preferences
                 else if (value != JobPriority.High)
                     continue;
 
-                if (hasHighPrority)
+                if (hasHighPriority)
                     _jobPriorities[key] = JobPriority.Medium;
 
-                hasHighPrority = true;
+                hasHighPriority = true;
             }
         }
 
@@ -387,7 +385,7 @@ namespace Content.Shared.Preferences
         public HumanoidCharacterProfile WithJobPriorities(IEnumerable<KeyValuePair<ProtoId<JobPrototype>, JobPriority>> jobPriorities)
         {
             var dictionary = new Dictionary<ProtoId<JobPrototype>, JobPriority>(jobPriorities);
-            var hasHighPrority = false;
+            var hasHighPriority = false;
 
             foreach (var (key, value) in dictionary)
             {
@@ -396,10 +394,10 @@ namespace Content.Shared.Preferences
                 else if (value != JobPriority.High)
                     continue;
 
-                if (hasHighPrority)
+                if (hasHighPriority)
                     dictionary[key] = JobPriority.Medium;
 
-                hasHighPrority = true;
+                hasHighPriority = true;
             }
 
             return new(this)
@@ -557,7 +555,7 @@ namespace Content.Shared.Preferences
             return Appearance.MemberwiseEquals(other.Appearance);
         }
 
-        public void EnsureValid(ICommonSession session, IDependencyCollection collection, string[] sponsorPrototypes)
+        public void EnsureValid(ICommonSession session, IDependencyCollection collection)
         {
             var configManager = collection.Resolve<IConfigurationManager>();
             var prototypeManager = collection.Resolve<IPrototypeManager>();
@@ -627,31 +625,12 @@ namespace Content.Shared.Preferences
                 name = GetName(Species, gender);
             }
 
-            // Sunrise-Start
-            IoCManager.Instance!.TryResolveType<ISharedSponsorsManager>(out var sponsors);
-            var maxDescLength = configManager.GetCVar(SunriseCCVars.FlavorTextBaseLength);
-            if (sponsors != null)
-            {
-                if (sponsors.IsSponsor(session.UserId))
-                    maxDescLength = sponsors.GetSizeFlavor(session.UserId);
-                if (!sponsors.IsAllowedFlavor(session.UserId) && configManager.GetCVar(SunriseCCVars.FlavorTextSponsorOnly))
-                {
-                    FlavorText = string.Empty;
-                }
-            }
-            // Sunrise-End
+            var maxDescLength = configManager.GetCVar(CCVars.MaxFlavorTextLength);
+            var flavorText = FlavorText.Length > maxDescLength
+                ? FormattedMessage.RemoveMarkupOrThrow(FlavorText)[..maxDescLength]
+                : FormattedMessage.RemoveMarkupOrThrow(FlavorText);
 
-            string flavortext;
-            if (FlavorText.Length > maxDescLength) // Sunrise-Edit
-            {
-                flavortext = FormattedMessage.RemoveMarkupOrThrow(FlavorText)[..maxDescLength]; // Sunrise-Edit
-            }
-            else
-            {
-                flavortext = FormattedMessage.RemoveMarkupOrThrow(FlavorText);
-            }
-
-            var appearance = HumanoidCharacterAppearance.EnsureValid(Appearance, Species, Sex, sponsorPrototypes);
+            var appearance = HumanoidCharacterAppearance.EnsureValid(Appearance, Species, Sex);
 
             var prefsUnavailableMode = PreferenceUnavailable switch
             {
@@ -678,15 +657,15 @@ namespace Content.Shared.Preferences
                     _ => false
                 }));
 
-            var hasHighPrio = false;
+            var hasHighPriority = false;
             foreach (var (key, value) in priorities)
             {
                 if (value != JobPriority.High)
                     continue;
 
-                if (hasHighPrio)
+                if (hasHighPriority)
                     priorities[key] = JobPriority.Medium;
-                hasHighPrio = true;
+                hasHighPriority = true;
             }
 
             var antags = AntagPreferences
@@ -698,7 +677,7 @@ namespace Content.Shared.Preferences
                          .ToList();
 
             Name = name;
-            FlavorText = flavortext;
+            FlavorText = flavorText;
             Age = age;
             Sex = sex;
             Gender = gender;
@@ -741,7 +720,7 @@ namespace Content.Shared.Preferences
                 // This happens after we verify the prototype exists
                 // These values are set equal in the database and we need to make sure they're equal here too!
                 loadouts.Role = roleName;
-                loadouts.EnsureValid(this, session, collection, sponsorPrototypes); // Sunrise-Sponsors
+                loadouts.EnsureValid(this, session, collection);
             }
 
             foreach (var value in toRemove)
@@ -807,10 +786,10 @@ namespace Content.Shared.Preferences
         }
         // Sunrise-TTS-End
 
-        public ICharacterProfile Validated(ICommonSession session, IDependencyCollection collection, string[] sponsorPrototypes)
+        public ICharacterProfile Validated(ICommonSession session, IDependencyCollection collection)
         {
             var profile = new HumanoidCharacterProfile(this);
-            profile.EnsureValid(session, collection, sponsorPrototypes);
+            profile.EnsureValid(session, collection);
             return profile;
         }
 
@@ -886,10 +865,10 @@ namespace Content.Shared.Preferences
             if (!_loadouts.TryGetValue(id, out var loadout))
             {
                 loadout = new RoleLoadout(id);
-                loadout.SetDefault(this, session, protoManager, sponsorPrototypes, force: true);
+                loadout.SetDefault(this, session, protoManager, force: true);
             }
 
-            loadout.SetDefault(this, session, protoManager, sponsorPrototypes);
+            loadout.SetDefault(this, session, protoManager);
             return loadout;
         }
 

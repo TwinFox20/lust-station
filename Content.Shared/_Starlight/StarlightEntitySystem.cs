@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Content.Shared.GameTicking;
 using Robust.Shared.Prototypes;
+#pragma warning disable CS8631
 
 namespace Content.Server.Administration.Systems;
 

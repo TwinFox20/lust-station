@@ -75,8 +75,6 @@ public sealed partial class PlayerTabEntry : PanelContainer
         if (player.IdentityName != player.CharacterName)
             CharacterLabel.Text += $" [{player.IdentityName}]";
 
-        SponsorLabel.Text = player.IsSponsor ? player.SponsorTitle : ""; // Sunrise-Sponsors
-
         var roletype = RoleTypeLabel.Text = Loc.GetString(rolePrototype?.Name ?? RoleTypePrototype.FallbackName);
         var subtype = roles.GetRoleSubtypeLabel(rolePrototype?.Name ?? RoleTypePrototype.FallbackName, player.Subtype);
         switch (roleSetting)

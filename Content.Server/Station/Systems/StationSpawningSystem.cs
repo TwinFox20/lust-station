@@ -6,7 +6,6 @@ using Content.Server.PDA;
 using Content.Server.Spawners.Components;
 using Content.Server.Station.Components;
 using Content.Shared._Sunrise.InteractionsPanel.Data.Components;
-using Content.Shared._Sunrise.SunriseCCVars;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.CCVar;
@@ -26,7 +25,6 @@ using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
-using Content.Sunrise.Interfaces.Shared;
 
 namespace Content.Server.Station.Systems;
 
@@ -47,7 +45,6 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
     [Dependency] private readonly PdaSystem _pdaSystem = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MindSystem _mindSystem = default!;
-    private ISharedSponsorsManager? _sponsorsManager; // Sunrise-Sponsors
 
     private bool _randomizeCharacters;
 
@@ -55,7 +52,6 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
     public override void Initialize()
     {
         base.Initialize();
-        IoCManager.Instance!.TryResolveType(out _sponsorsManager); // Sunrise-Sponsors
         Subs.CVar(_configurationManager, CCVars.ICRandomCharacters, e => _randomizeCharacters = e, true);
     }
 
@@ -112,7 +108,7 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
 
         // Sunrise-start
         var effectiveJobLoadout = LoadoutSystem.GetEffectiveRolePrototype(jobLoadout, _prototypeManager);
-        if (_prototypeManager.TryIndex<RoleLoadoutPrototype>(effectiveJobLoadout, out var roleProto))
+        if (_prototypeManager.TryIndex(effectiveJobLoadout, out var roleProto))
         // Sunrise-end
         {
             profile?.Loadouts.TryGetValue(jobLoadout, out loadout);
@@ -120,21 +116,8 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             // Set to default if not present
             if (loadout == null)
             {
-                // Sunrise-Start
-                var session = _actors.GetSession(entity);
-
-                string [] sponsorsPrototypes = [];
-                if (_sponsorsManager != null && session != null)
-                {
-                    if (_sponsorsManager.TryGetPrototypes(session.UserId, out var prototypes))
-                    {
-                        sponsorsPrototypes = prototypes.ToArray();
-                    }
-                }
-                // Sunrise-End
-
                 loadout = new RoleLoadout(jobLoadout);
-                loadout.SetDefault(profile, _actors.GetSession(entity), _prototypeManager, sponsorsPrototypes);
+                loadout.SetDefault(profile, _actors.GetSession(entity), _prototypeManager);
             }
         }
 
@@ -168,28 +151,21 @@ public sealed class StationSpawningSystem : SharedStationSpawningSystem
             _humanoidSystem.LoadProfile(entity.Value, profile);
             _metaSystem.SetEntityName(entity.Value, profile.Name);
 
-            // Sunrise-Start
             if (!string.IsNullOrEmpty(profile.FlavorText) && _configurationManager.GetCVar(CCVars.FlavorText))
             {
                 var session = _actors.GetSession(entity);
-                var flavortext = profile.FlavorText;
+                var flavorText = profile.FlavorText;
 
-                if (_sponsorsManager != null && session != null)
+                if (session != null)
                 {
-                    var maxDescLength = _sponsorsManager.GetSizeFlavor(session.UserId);
-                    if (flavortext.Length > maxDescLength)
-                    {
-                        flavortext = FormattedMessage.RemoveMarkupOrThrow(flavortext)[..maxDescLength];
-                    }
+                    var maxDescLength = _configurationManager.GetCVar(CCVars.MaxFlavorTextLength);
+                    if (flavorText.Length > maxDescLength)
+                        flavorText = FormattedMessage.RemoveMarkupOrThrow(flavorText)[..maxDescLength];
                 }
 
-                if (!_configurationManager.GetCVar(SunriseCCVars.FlavorTextSponsorOnly) ||
-                    _sponsorsManager != null && session != null && _sponsorsManager.IsAllowedFlavor(session.UserId))
-                {
-                    AddComp<DetailExaminableComponent>(entity.Value).Content = flavortext;
-                }
+                AddComp<DetailExaminableComponent>(entity.Value).Content = flavorText;
             }
-            // Sunrise-End
+
             // Lust-Station-Start
             EnsureComp<ErpStatusComponent>(entity.Value).Erp = profile.Erp;
              if (profile.Erp == Erp.No) { EnsureComp<InteractionsComponent>(entity.Value).Erp = false; }
